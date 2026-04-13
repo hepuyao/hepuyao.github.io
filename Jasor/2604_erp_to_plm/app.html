@@ -10,19 +10,10 @@
     <main class="wrap">
       <h1>ERP → PLM 转换</h1>
       <p class="hint">
-        本地浏览器处理：页面会优先自动读取当前目录下的 <code>head.xlsx</code> 作为表头模板，你也可以手动选择覆盖。再选择待转换 ERP 表（首行表头，从第 2 行起读取 C、O、P 列）。转换规则与 <code>2604_erp_to_plm.py</code> 对齐。
+        本地浏览器处理：页面会自动读取当前目录下的 <code>head.xlsx</code> 作为表头模板。请选择待转换 ERP 表（首行表头，从第 2 行起读取 C、O、P 列）。转换规则与 <code>2604_erp_to_plm.py</code> 对齐。
       </p>
-
       <section class="card">
-        <h2>1. 表头模板</h2>
-        <label class="file">
-          <input type="file" id="headFile" accept=".xlsx,.xlsm" />
-          <span id="headLabel">未选择文件</span>
-        </label>
-      </section>
-
-      <section class="card">
-        <h2>2. ERP 输入表</h2>
+        <h2>1. ERP 输入表</h2>
         <label class="file">
           <input type="file" id="inputFile" accept=".xlsx,.xlsm" />
           <span id="inputLabel">未选择文件</span>

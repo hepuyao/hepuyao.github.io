@@ -648,41 +648,32 @@
       })
       .then(function (arrayBuffer) {
         defaultHeadArrayBuffer = arrayBuffer;
-        document.getElementById("headLabel").textContent = "已自动加载 head.xlsx";
       })
       .catch(function () {
         defaultHeadArrayBuffer = null;
-        document.getElementById("headLabel").textContent = "未自动加载 head.xlsx，请手动选择";
       });
   }
 
-  document.getElementById("headFile").addEventListener("change", function (e) {
-    const f = e.target.files[0];
-    document.getElementById("headLabel").textContent = f ? f.name : "未选择文件";
-  });
   document.getElementById("inputFile").addEventListener("change", function (e) {
     const f = e.target.files[0];
     document.getElementById("inputLabel").textContent = f ? f.name : "未选择文件";
   });
 
   document.getElementById("btnConvert").addEventListener("click", function () {
-    const headEl = document.getElementById("headFile");
     const inputEl = document.getElementById("inputFile");
-    const headFile = headEl.files[0];
     const inputFile = inputEl.files[0];
     if (!inputFile) {
       setStatus("请先选择 ERP 输入文件。", true);
       return;
     }
-    if (!headFile && !defaultHeadArrayBuffer) {
-      setStatus("未检测到默认 head.xlsx，请手动选择表头模板文件。", true);
+    if (!defaultHeadArrayBuffer) {
+      setStatus("未检测到默认 head.xlsx，请确认文件已部署在当前页面目录。", true);
       return;
     }
     const btn = document.getElementById("btnConvert");
     btn.disabled = true;
     setStatus("正在转换…", false);
-    const headBufferPromise = headFile ? readFileAsArrayBuffer(headFile) : Promise.resolve(defaultHeadArrayBuffer);
-    Promise.all([headBufferPromise, readFileAsArrayBuffer(inputFile)])
+    Promise.all([Promise.resolve(defaultHeadArrayBuffer), readFileAsArrayBuffer(inputFile)])
       .then(function (bufs) {
         const result = executeConvert(bufs[0], bufs[1], inputFile.name);
         const blob = new Blob([result.data], {
