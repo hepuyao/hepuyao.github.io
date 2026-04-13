@@ -5,6 +5,8 @@
   const COL_B_INDEX = 2;
   const COL_AA_INDEX = 27;
   const EXCEL_FILE_PATTERN = /\.(xlsx|xlsm|xls|csv)$/i;
+  let selectedCheckFile = null;
+  let selectedTotalEntries = [];
   function isBlank(value) {
     if (value === null || value === undefined) {
       return true;
@@ -48,6 +50,57 @@
       };
       reader.readAsArrayBuffer(file);
     });
+  }
+  async function pickCheckFileByApi() {
+    const handles = await window.showOpenFilePicker({
+      multiple: false,
+      types: [
+        {
+          description: "Excel 文件",
+          accept: {
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx", ".xlsm"],
+            "application/vnd.ms-excel": [".xls"],
+            "text/csv": [".csv"],
+          },
+        },
+      ],
+      excludeAcceptAllOption: false,
+    });
+    if (!handles || handles.length === 0) {
+      return;
+    }
+    const file = await handles[0].getFile();
+    selectedCheckFile = file;
+    document.getElementById("checkFileLabel").textContent = file.name;
+  }
+  async function collectExcelFileHandlesRecursively(directoryHandle, prefixPath) {
+    const entryList = [];
+    for await (const item of directoryHandle.values()) {
+      if (item.kind === "file") {
+        if (!EXCEL_FILE_PATTERN.test(item.name)) {
+          continue;
+        }
+        const file = await item.getFile();
+        entryList.push({
+          file: file,
+          path: (prefixPath ? prefixPath + "/" : "") + item.name,
+        });
+        continue;
+      }
+      if (item.kind === "directory") {
+        const childPrefixPath = (prefixPath ? prefixPath + "/" : "") + item.name;
+        const childEntries = await collectExcelFileHandlesRecursively(item, childPrefixPath);
+        entryList.push.apply(entryList, childEntries);
+      }
+    }
+    return entryList;
+  }
+  async function pickTotalFolderByApi() {
+    const directoryHandle = await window.showDirectoryPicker({ mode: "read" });
+    const entries = await collectExcelFileHandlesRecursively(directoryHandle, "");
+    selectedTotalEntries = entries;
+    document.getElementById("totalFolderLabel").textContent =
+      directoryHandle.name + "（共 " + entries.length + " 个 Excel 文件）";
   }
   function collectRowsFromWorkbook(workbook, sourceName) {
     const rows = [];
@@ -124,16 +177,12 @@
     };
   }
   async function executeCheck() {
-    const checkFileInput = document.getElementById("checkFile");
-    const totalFolderInput = document.getElementById("totalFolder");
-    const checkFile = checkFileInput.files[0];
-    const totalFiles = Array.from(totalFolderInput.files || []).filter(function (file) {
-      return EXCEL_FILE_PATTERN.test(file.name);
-    });
+    const checkFile = selectedCheckFile;
+    const totalEntries = selectedTotalEntries;
     if (!checkFile) {
       throw new Error("请先选择检测数据表。");
     }
-    if (totalFiles.length === 0) {
+    if (totalEntries.length === 0) {
       throw new Error("请先选择包含 Excel 的总数据文件夹。");
     }
     setStatus("正在读取检测数据表...", false);
@@ -143,12 +192,12 @@
     if (checkRows.length === 0) {
       throw new Error("检测数据表中未找到可用 B 列数据。");
     }
-    setStatus("正在读取总数据文件夹，共 " + totalFiles.length + " 个文件...", false);
+    setStatus("正在读取总数据文件夹，共 " + totalEntries.length + " 个文件...", false);
     let totalRows = [];
-    for (const totalFile of totalFiles) {
-      const totalBuffer = await readFileAsArrayBuffer(totalFile);
+    for (const totalEntry of totalEntries) {
+      const totalBuffer = await readFileAsArrayBuffer(totalEntry.file);
       const totalWorkbook = XLSX.read(totalBuffer, { type: "array", cellDates: true });
-      const fileRows = collectRowsFromWorkbook(totalWorkbook, totalFile.webkitRelativePath || totalFile.name);
+      const fileRows = collectRowsFromWorkbook(totalWorkbook, totalEntry.path);
       totalRows = totalRows.concat(fileRows);
     }
     const totalIndex = buildTotalIndex(totalRows);
@@ -170,19 +219,33 @@
     setResult(summaryLines);
     setStatus("完成，共输出 " + compareResult.outputLines.length + " 条命中记录。", false);
   }
-  document.getElementById("checkFile").addEventListener("change", function (event) {
-    const file = event.target.files[0];
-    document.getElementById("checkFileLabel").textContent = file ? file.name : "未选择文件";
-  });
-  document.getElementById("totalFolder").addEventListener("change", function (event) {
-    const files = Array.from(event.target.files || []);
-    if (files.length === 0) {
-      document.getElementById("totalFolderLabel").textContent = "未选择文件夹";
+  document.getElementById("btnPickCheckFile").addEventListener("click", async function () {
+    if (!window.showOpenFilePicker) {
+      setStatus("当前浏览器不支持无上传模式，请使用最新版 Chrome/Edge。", true);
       return;
     }
-    const firstFilePath = files[0].webkitRelativePath || files[0].name;
-    const folderName = firstFilePath.split("/")[0];
-    document.getElementById("totalFolderLabel").textContent = folderName + "（共 " + files.length + " 个文件）";
+    try {
+      await pickCheckFileByApi();
+    } catch (error) {
+      if (error && error.name === "AbortError") {
+        return;
+      }
+      setStatus("选择检测表失败：" + (error && error.message ? error.message : String(error)), true);
+    }
+  });
+  document.getElementById("btnPickTotalFolder").addEventListener("click", async function () {
+    if (!window.showDirectoryPicker) {
+      setStatus("当前浏览器不支持无上传模式，请使用最新版 Chrome/Edge。", true);
+      return;
+    }
+    try {
+      await pickTotalFolderByApi();
+    } catch (error) {
+      if (error && error.name === "AbortError") {
+        return;
+      }
+      setStatus("选择总数据文件夹失败：" + (error && error.message ? error.message : String(error)), true);
+    }
   });
   document.getElementById("btnCheck").addEventListener("click", function () {
     const button = document.getElementById("btnCheck");

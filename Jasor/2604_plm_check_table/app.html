@@ -14,17 +14,17 @@
       </p>
       <section class="card">
         <h2>1. 选择检测数据表</h2>
-        <label class="file">
-          <input type="file" id="checkFile" accept=".xlsx,.xlsm,.xls,.csv" />
+        <div class="pickerRow">
+          <button type="button" id="btnPickCheckFile" class="secondary">确认选择检测表</button>
           <span id="checkFileLabel">未选择文件</span>
-        </label>
+        </div>
       </section>
       <section class="card">
         <h2>2. 选择总数据文件夹</h2>
-        <label class="file">
-          <input type="file" id="totalFolder" webkitdirectory directory multiple />
+        <div class="pickerRow">
+          <button type="button" id="btnPickTotalFolder" class="secondary">确认选择总数据文件夹</button>
           <span id="totalFolderLabel">未选择文件夹</span>
-        </label>
+        </div>
       </section>
       <section class="card actions">
         <button type="button" id="btnCheck" class="primary">开始检测</button>
