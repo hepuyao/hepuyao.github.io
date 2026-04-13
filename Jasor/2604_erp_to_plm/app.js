@@ -1,7 +1,7 @@
 /* global XLSX */
 (function () {
   "use strict";
-
+  const DEFAULT_HEAD_FILE_URL = "head.xlsx";
   const OUTPUT_ROW_DATA_START = 7;
   const OUTPUT_COL_C = 3;
   const OUTPUT_COL_D_START = 4;
@@ -326,6 +326,7 @@
     "GJ07A",
     "GK07A",
   ]);
+  let defaultHeadArrayBuffer = null;
 
   function isBlank(value) {
     if (value === null || value === undefined) {
@@ -637,6 +638,23 @@
       r.readAsArrayBuffer(file);
     });
   }
+  function loadDefaultHeadFile() {
+    return fetch(DEFAULT_HEAD_FILE_URL, { cache: "no-store" })
+      .then(function (response) {
+        if (!response.ok) {
+          throw new Error("HTTP " + response.status);
+        }
+        return response.arrayBuffer();
+      })
+      .then(function (arrayBuffer) {
+        defaultHeadArrayBuffer = arrayBuffer;
+        document.getElementById("headLabel").textContent = "已自动加载 head.xlsx";
+      })
+      .catch(function () {
+        defaultHeadArrayBuffer = null;
+        document.getElementById("headLabel").textContent = "未自动加载 head.xlsx，请手动选择";
+      });
+  }
 
   document.getElementById("headFile").addEventListener("change", function (e) {
     const f = e.target.files[0];
@@ -652,18 +670,19 @@
     const inputEl = document.getElementById("inputFile");
     const headFile = headEl.files[0];
     const inputFile = inputEl.files[0];
-    if (!headFile) {
-      setStatus("请先选择表头模板文件。", true);
-      return;
-    }
     if (!inputFile) {
       setStatus("请先选择 ERP 输入文件。", true);
+      return;
+    }
+    if (!headFile && !defaultHeadArrayBuffer) {
+      setStatus("未检测到默认 head.xlsx，请手动选择表头模板文件。", true);
       return;
     }
     const btn = document.getElementById("btnConvert");
     btn.disabled = true;
     setStatus("正在转换…", false);
-    Promise.all([readFileAsArrayBuffer(headFile), readFileAsArrayBuffer(inputFile)])
+    const headBufferPromise = headFile ? readFileAsArrayBuffer(headFile) : Promise.resolve(defaultHeadArrayBuffer);
+    Promise.all([headBufferPromise, readFileAsArrayBuffer(inputFile)])
       .then(function (bufs) {
         const result = executeConvert(bufs[0], bufs[1], inputFile.name);
         const blob = new Blob([result.data], {
@@ -684,4 +703,5 @@
         btn.disabled = false;
       });
   });
+  loadDefaultHeadFile();
 })();
