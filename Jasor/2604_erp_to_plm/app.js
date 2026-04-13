@@ -662,6 +662,7 @@
   document.getElementById("btnConvert").addEventListener("click", function () {
     const inputEl = document.getElementById("inputFile");
     const inputFile = inputEl.files[0];
+    document.getElementById("inputLabel").textContent = inputFile ? inputFile.name : "未选择文件";
     if (!inputFile) {
       setStatus("请先选择 ERP 输入文件。", true);
       return;
