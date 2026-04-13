@@ -2,7 +2,7 @@
 
 ![图片](http://hepuyao.com/Pictures/Movies/spiderman_1.jpg "蜘蛛侠-平行宇宙")
 ## Jasor
-- [原始数据转换为plm数据](Jasor/README.md)
+- [Jasor](Jasor/README.md)
 ## CUOS
 - [CUOS](CUOS/readme.md)
 ## 2023
