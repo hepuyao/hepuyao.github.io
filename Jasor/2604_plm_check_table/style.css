@@ -1,0 +1,95 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: #f4f6f8;
+  color: #1a1a1a;
+  line-height: 1.5;
+}
+.wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+}
+h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+}
+.hint {
+  font-size: 0.9rem;
+  color: #444;
+  margin: 0 0 1.5rem;
+}
+.card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.card h2 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+  color: #333;
+}
+.file {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.file input[type="file"] {
+  font-size: 0.875rem;
+}
+.file span {
+  font-size: 0.85rem;
+  color: #666;
+  word-break: break-all;
+}
+.actions {
+  padding-top: 1.25rem;
+}
+.primary {
+  appearance: none;
+  border: none;
+  background: #0d6efd;
+  color: #fff;
+  padding: 0.65rem 1.25rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.primary:hover {
+  background: #0b5ed7;
+}
+.primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.status {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+  color: #2e7d32;
+  min-height: 1.4em;
+}
+.status.err {
+  color: #c62828;
+}
+.result {
+  margin: 0;
+  max-height: 460px;
+  overflow: auto;
+  white-space: pre-wrap;
+  background: #f7f9fb;
+  border: 1px solid #dde3ea;
+  border-radius: 8px;
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  color: #202124;
+}

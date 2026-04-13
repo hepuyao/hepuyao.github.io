@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PLM 表检测（B/AA）</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="wrap">
+      <h1>2604 PLM 表检测（B/AA）</h1>
+      <p class="hint">
+        先选择一个检测数据表，再选择总数据文件夹。程序会扫描总数据中所有 Excel 文件及其所有 Sheet，按 B 列查重，并比较 AA 列是否一致。
+      </p>
+      <section class="card">
+        <h2>1. 选择检测数据表</h2>
+        <label class="file">
+          <input type="file" id="checkFile" accept=".xlsx,.xlsm,.xls,.csv" />
+          <span id="checkFileLabel">未选择文件</span>
+        </label>
+      </section>
+      <section class="card">
+        <h2>2. 选择总数据文件夹</h2>
+        <label class="file">
+          <input type="file" id="totalFolder" webkitdirectory directory multiple />
+          <span id="totalFolderLabel">未选择文件夹</span>
+        </label>
+      </section>
+      <section class="card actions">
+        <button type="button" id="btnCheck" class="primary">开始检测</button>
+        <p id="status" class="status" role="status"></p>
+      </section>
+      <section class="card">
+        <h2>检测输出</h2>
+        <pre id="result" class="result">等待执行检测...</pre>
+      </section>
+    </main>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
