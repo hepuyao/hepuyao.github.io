@@ -110,6 +110,22 @@
     resetTotalFolderSelectionLabel();
     document.getElementById("totalFileLabel").textContent = file.name;
   }
+  function pickTotalFileByInput(file) {
+    if (!file) {
+      return;
+    }
+    if (!EXCEL_FILE_PATTERN.test(file.name)) {
+      throw new Error("总数据文件格式不支持，请选择 Excel 文件。");
+    }
+    selectedTotalEntries = [
+      {
+        file: file,
+        path: file.name,
+      },
+    ];
+    resetTotalFolderSelectionLabel();
+    document.getElementById("totalFileLabel").textContent = file.name;
+  }
   async function collectExcelFileHandlesRecursively(directoryHandle, prefixPath) {
     const entryList = [];
     for await (const item of directoryHandle.values()) {
@@ -287,7 +303,7 @@
   });
   document.getElementById("btnPickTotalFile").addEventListener("click", async function () {
     if (!window.showOpenFilePicker) {
-      setStatus("当前浏览器不支持无上传模式，请使用最新版 Chrome/Edge。", true);
+      document.getElementById("totalFileInput").click();
       return;
     }
     try {
@@ -296,6 +312,14 @@
       if (error && error.name === "AbortError") {
         return;
       }
+      document.getElementById("totalFileInput").click();
+    }
+  });
+  document.getElementById("totalFileInput").addEventListener("change", function (event) {
+    try {
+      const file = event.target.files && event.target.files[0] ? event.target.files[0] : null;
+      pickTotalFileByInput(file);
+    } catch (error) {
       setStatus("选择总数据文件失败：" + (error && error.message ? error.message : String(error)), true);
     }
   });
