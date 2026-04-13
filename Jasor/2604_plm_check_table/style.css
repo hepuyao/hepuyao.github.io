@@ -52,6 +52,28 @@ h1 {
   color: #666;
   word-break: break-all;
 }
+.pickerRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.hiddenInput {
+  display: none;
+}
+.secondary {
+  appearance: none;
+  border: 1px solid #b6c0cb;
+  background: #ffffff;
+  color: #1f2a37;
+  padding: 0.55rem 0.95rem;
+  font-size: 0.92rem;
+  border-radius: 8px;
+  cursor: pointer;
+  width: fit-content;
+}
+.secondary:hover {
+  background: #f7f9fb;
+}
 .actions {
   padding-top: 1.25rem;
 }
