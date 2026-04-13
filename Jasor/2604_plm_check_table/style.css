@@ -57,9 +57,6 @@ h1 {
   flex-direction: column;
   gap: 0.5rem;
 }
-.hiddenInput {
-  display: none;
-}
 .secondary {
   appearance: none;
   border: 1px solid #b6c0cb;
