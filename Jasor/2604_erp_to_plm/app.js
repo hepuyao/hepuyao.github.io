@@ -658,6 +658,10 @@
     const f = e.target.files[0];
     document.getElementById("inputLabel").textContent = f ? f.name : "未选择文件";
   });
+  document.getElementById("inputFile").addEventListener("input", function (e) {
+    const f = e.target.files[0];
+    document.getElementById("inputLabel").textContent = f ? f.name : "未选择文件";
+  });
 
   document.getElementById("btnConvert").addEventListener("click", function () {
     const inputEl = document.getElementById("inputFile");

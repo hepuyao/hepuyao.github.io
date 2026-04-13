@@ -15,7 +15,7 @@
       <section class="card">
         <h2>1. ERP 输入表</h2>
         <label class="file">
-          <input type="file" id="inputFile" accept=".xlsx,.xlsm,.xls,.csv" />
+          <input type="file" id="inputFile" accept=".xlsx,.xlsm,.xls,.csv" onchange="document.getElementById('inputLabel').textContent = (this.files && this.files[0]) ? this.files[0].name : '未选择文件';" />
           <span id="inputLabel">未选择文件</span>
         </label>
       </section>
@@ -27,6 +27,6 @@
     </main>
 
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
-    <script src="app.js"></script>
+    <script src="app.js?v=20260413-2"></script>
   </body>
 </html>
