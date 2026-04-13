@@ -10,7 +10,7 @@
     <main class="wrap">
       <h1>2604 PLM 表检测（B/AA）</h1>
       <p class="hint">
-        先选择一个检测数据表，再选择总数据文件夹。程序会扫描总数据中所有 Excel 文件及其所有 Sheet，按 B 列查重，并比较 AA 列是否一致。
+        先选择一个检测数据表，再选择总数据来源（总数据文件夹或总数据文件二选一）。程序会扫描总数据中的所有 Sheet，按 B 列查重，并比较 AA 列是否一致。
       </p>
       <section class="card">
         <h2>1. 选择检测数据表</h2>
@@ -24,6 +24,13 @@
         <div class="pickerRow">
           <button type="button" id="btnPickTotalFolder" class="secondary">确认选择总数据文件夹</button>
           <span id="totalFolderLabel">未选择文件夹</span>
+        </div>
+      </section>
+      <section class="card">
+        <h2>3. 选择总数据文件（与文件夹二选一）</h2>
+        <div class="pickerRow">
+          <button type="button" id="btnPickTotalFile" class="secondary">确认选择总数据文件</button>
+          <span id="totalFileLabel">未选择文件</span>
         </div>
       </section>
       <section class="card actions">

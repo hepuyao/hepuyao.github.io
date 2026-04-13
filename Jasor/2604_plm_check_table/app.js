@@ -7,6 +7,12 @@
   const EXCEL_FILE_PATTERN = /\.(xlsx|xlsm|xls|csv)$/i;
   let selectedCheckFile = null;
   let selectedTotalEntries = [];
+  function resetTotalFolderSelectionLabel() {
+    document.getElementById("totalFolderLabel").textContent = "未选择文件夹";
+  }
+  function resetTotalFileSelectionLabel() {
+    document.getElementById("totalFileLabel").textContent = "未选择文件";
+  }
   function isBlank(value) {
     if (value === null || value === undefined) {
       return true;
@@ -73,6 +79,37 @@
     selectedCheckFile = file;
     document.getElementById("checkFileLabel").textContent = file.name;
   }
+  async function pickTotalFileByApi() {
+    const handles = await window.showOpenFilePicker({
+      multiple: false,
+      types: [
+        {
+          description: "Excel 文件",
+          accept: {
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx", ".xlsm"],
+            "application/vnd.ms-excel": [".xls"],
+            "text/csv": [".csv"],
+          },
+        },
+      ],
+      excludeAcceptAllOption: false,
+    });
+    if (!handles || handles.length === 0) {
+      return;
+    }
+    const file = await handles[0].getFile();
+    if (!EXCEL_FILE_PATTERN.test(file.name)) {
+      throw new Error("总数据文件格式不支持，请选择 Excel 文件。");
+    }
+    selectedTotalEntries = [
+      {
+        file: file,
+        path: file.name,
+      },
+    ];
+    resetTotalFolderSelectionLabel();
+    document.getElementById("totalFileLabel").textContent = file.name;
+  }
   async function collectExcelFileHandlesRecursively(directoryHandle, prefixPath) {
     const entryList = [];
     for await (const item of directoryHandle.values()) {
@@ -99,6 +136,7 @@
     const directoryHandle = await window.showDirectoryPicker({ mode: "read" });
     const entries = await collectExcelFileHandlesRecursively(directoryHandle, "");
     selectedTotalEntries = entries;
+    resetTotalFileSelectionLabel();
     document.getElementById("totalFolderLabel").textContent =
       directoryHandle.name + "（共 " + entries.length + " 个 Excel 文件）";
   }
@@ -183,7 +221,7 @@
       throw new Error("请先选择检测数据表。");
     }
     if (totalEntries.length === 0) {
-      throw new Error("请先选择包含 Excel 的总数据文件夹。");
+      throw new Error("请先选择总数据来源（文件夹或文件）。");
     }
     setStatus("正在读取检测数据表...", false);
     const checkFileBuffer = await readFileAsArrayBuffer(checkFile);
@@ -245,6 +283,20 @@
         return;
       }
       setStatus("选择总数据文件夹失败：" + (error && error.message ? error.message : String(error)), true);
+    }
+  });
+  document.getElementById("btnPickTotalFile").addEventListener("click", async function () {
+    if (!window.showOpenFilePicker) {
+      setStatus("当前浏览器不支持无上传模式，请使用最新版 Chrome/Edge。", true);
+      return;
+    }
+    try {
+      await pickTotalFileByApi();
+    } catch (error) {
+      if (error && error.name === "AbortError") {
+        return;
+      }
+      setStatus("选择总数据文件失败：" + (error && error.message ? error.message : String(error)), true);
     }
   });
   document.getElementById("btnCheck").addEventListener("click", function () {
