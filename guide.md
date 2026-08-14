@@ -5,6 +5,8 @@
 - [Jasor](Jasor/README.md)
 ## CUOS
 - [CUOS](CUOS/readme.md)
+## 2026
+- [世界杯决赛](2026/世界杯决赛.md)
 ## 2023
 - [进入2023](2023/readme.md)
 - [道德经](2023/道德经.md)
