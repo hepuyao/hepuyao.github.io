@@ -1,3 +1,3 @@
-* [主页](hepuyao.com/kylin/temp)
-    * [📘 读书笔记](2019/)
-* [个人其他平台账号]()
+* [关注]()
+    * [工具](https://hepuyao.github.io/#/Jasor/README)
+* [主页](https://hepuyao.github.io/#/guide)
