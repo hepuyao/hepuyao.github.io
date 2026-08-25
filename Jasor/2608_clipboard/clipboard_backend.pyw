@@ -157,6 +157,39 @@ def read_clipboard_state() -> ClipboardState:
     )
 
 
+def clear_system_clipboard() -> None:
+    """清空操作系统剪切板（其他软件粘贴将为空）。"""
+    system = platform.system()
+    if system == "Darwin":
+        result = _run_subprocess(["pbcopy"], input="", text=True, check=False)
+        if result.returncode != 0:
+            raise RuntimeError("macOS 清空剪切板失败")
+        return
+    if system == "Windows":
+        command = [
+            "powershell",
+            "-NoProfile",
+            "-WindowStyle",
+            "Hidden",
+            "-Command",
+            "Set-Clipboard -Value $null",
+        ]
+        result = _run_subprocess(command, capture_output=True, text=True, check=False)
+        if result.returncode != 0:
+            # 兼容旧系统：用 clip 写入空内容
+            fallback = _run_subprocess(
+                ["cmd", "/c", "echo.|clip"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            if fallback.returncode != 0:
+                message = result.stderr.strip() or fallback.stderr.strip() or "未知错误"
+                raise RuntimeError(f"Windows 清空剪切板失败: {message}")
+        return
+    raise RuntimeError(f"当前平台暂不支持清空系统剪切板: {system}")
+
+
 # ---------------------------------------------------------------------------
 # 历史存储
 # ---------------------------------------------------------------------------
@@ -461,6 +494,16 @@ class ApiHandler(BaseHTTPRequestHandler):
             STATE.store.clear()
             STATE.monitor.last_text_fingerprint = ""
             STATE.monitor.last_image_fingerprint = ""
+            self._json({"ok": True})
+            return
+        if path == "/api/clipboard/clear":
+            try:
+                clear_system_clipboard()
+                STATE.monitor.last_text_fingerprint = ""
+                STATE.monitor.last_image_fingerprint = ""
+            except Exception as exc:  # noqa: BLE001
+                self._json({"ok": False, "error": str(exc)}, 500)
+                return
             self._json({"ok": True})
             return
         self.send_error(404)

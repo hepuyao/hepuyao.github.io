@@ -16,6 +16,7 @@ const els = {
   btnCopyInstall: document.getElementById("btnCopyInstall"),
   btnCopyStart: document.getElementById("btnCopyStart"),
   btnClear: document.getElementById("btnClear"),
+  btnClearClipboard: document.getElementById("btnClearClipboard"),
   autoWatch: document.getElementById("autoWatch"),
   status: document.getElementById("status"),
   historyList: document.getElementById("historyList"),
@@ -36,6 +37,7 @@ function init() {
 function bindEvents() {
   els.btnConnect.addEventListener("click", () => connectBackend({ autoStartMonitor: true, tryWakeLauncher: true }));
   els.btnClear.addEventListener("click", () => clearHistory());
+  els.btnClearClipboard.addEventListener("click", () => clearSystemClipboard());
   els.btnCopyInstall.addEventListener("click", () => copyText(INSTALL_COMMAND, "安装命令已复制"));
   els.btnCopyStart.addEventListener("click", () => copyText(START_COMMAND, "启动命令已复制"));
   els.autoWatch.addEventListener("change", () => toggleMonitor());
@@ -234,7 +236,7 @@ function renderHistory() {
 
 async function clearHistory() {
   if (!entries.length) { setStatus("历史已是空的"); return; }
-  if (!window.confirm("确定清空全部历史吗？")) return;
+  if (!window.confirm("确定清空本软件的历史记录吗？\n（不会清空系统剪切板）")) return;
   if (!backendConnected) { setStatus("请先连接后台"); return; }
   await fetch(`${SERVER_URL}/api/history/clear`, { method: "POST" });
   entries = [];
@@ -245,7 +247,22 @@ async function clearHistory() {
   els.textView.classList.add("hidden");
   els.imageView.classList.add("hidden");
   els.emptyView.classList.remove("hidden");
-  setStatus("历史已清空");
+  setStatus("历史已清空（系统剪切板未改动）");
+}
+
+async function clearSystemClipboard() {
+  if (!backendConnected) { setStatus("请先连接后台"); return; }
+  if (!window.confirm("确定清空系统剪切板吗？\n清空后其他软件也无法再粘贴当前内容。")) return;
+  try {
+    const response = await fetch(`${SERVER_URL}/api/clipboard/clear`, { method: "POST" });
+    const payload = await response.json();
+    if (!response.ok) {
+      throw new Error(payload.error || "清空失败");
+    }
+    setStatus("系统剪切板已清空");
+  } catch (error) {
+    setStatus(`清空系统剪切板失败: ${error.message}`);
+  }
 }
 
 function updateBackendUi() {
