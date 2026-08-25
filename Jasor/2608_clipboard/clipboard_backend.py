@@ -35,6 +35,13 @@ LAUNCHER_PORT = 8764
 POLL_INTERVAL_SEC = 0.8
 BASE_DIR = Path(__file__).resolve().parent
 CACHE_DIR = BASE_DIR / ".clipboard_cache"
+_START_SERVER_LOCK = threading.Lock()
+_LAST_START_ATTEMPT = 0.0
+
+if sys.platform == "win32":
+    CREATE_NO_WINDOW = 0x08000000
+else:
+    CREATE_NO_WINDOW = 0
 
 
 # ---------------------------------------------------------------------------
@@ -93,10 +100,17 @@ def _looks_like_binary_text(text: str) -> bool:
     return non_printable > 8
 
 
+def _run_subprocess(args: list[str], **kwargs: Any) -> subprocess.CompletedProcess[str]:
+    """运行子进程；Windows 下隐藏控制台窗口，避免反复弹窗。"""
+    if sys.platform == "win32":
+        kwargs.setdefault("creationflags", CREATE_NO_WINDOW)
+    return subprocess.run(args, **kwargs)
+
+
 def _read_text_with_platform_command() -> Optional[ClipboardContent]:
     system = platform.system()
     if system == "Darwin":
-        result = subprocess.run(["pbpaste"], capture_output=True, text=True, check=False)
+        result = _run_subprocess(["pbpaste"], capture_output=True, text=True, check=False)
         if result.returncode != 0:
             return None
         normalized = _normalize_text(result.stdout)
@@ -104,8 +118,8 @@ def _read_text_with_platform_command() -> Optional[ClipboardContent]:
             return ClipboardContent(text="", source="pbpaste", is_empty=True)
         return ClipboardContent(text=normalized, source="pbpaste", is_empty=normalized == "")
     if system == "Windows":
-        command = ["powershell", "-NoProfile", "-Command", "Get-Clipboard -Raw"]
-        result = subprocess.run(command, capture_output=True, text=True, check=False)
+        command = ["powershell", "-NoProfile", "-WindowStyle", "Hidden", "-Command", "Get-Clipboard -Raw"]
+        result = _run_subprocess(command, capture_output=True, text=True, check=False)
         if result.returncode != 0:
             return None
         normalized = _normalize_text(result.stdout)
@@ -455,13 +469,24 @@ def is_port_open(port: int) -> bool:
 
 
 def start_server_process(port: int = SERVER_PORT) -> bool:
+    global _LAST_START_ATTEMPT
     if is_port_open(port):
         return True
-    command = [sys.executable, str(Path(__file__).resolve()), "--server", "--port", str(port), "--no-banner"]
-    if sys.platform == "win32":
-        subprocess.Popen(command, cwd=str(BASE_DIR), creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP, close_fds=True)
-    else:
-        subprocess.Popen(command, cwd=str(BASE_DIR), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+    with _START_SERVER_LOCK:
+        if is_port_open(port):
+            return True
+        now = time.time()
+        if now - _LAST_START_ATTEMPT < 5.0:
+            return is_port_open(port)
+        _LAST_START_ATTEMPT = now
+        command = [sys.executable, str(Path(__file__).resolve()), "--server", "--port", str(port), "--no-banner"]
+        popen_kwargs: dict[str, Any] = {"cwd": str(BASE_DIR), "stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL}
+        if sys.platform == "win32":
+            popen_kwargs["creationflags"] = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW
+            popen_kwargs["close_fds"] = True
+        else:
+            popen_kwargs["start_new_session"] = True
+        subprocess.Popen(command, **popen_kwargs)
     for _ in range(25):
         if is_port_open(port):
             return True

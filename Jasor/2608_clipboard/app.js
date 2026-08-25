@@ -30,7 +30,7 @@ const els = {
 
 function init() {
   bindEvents();
-  connectBackend({ autoStartMonitor: true, tryWakeLauncher: true });
+  connectBackend({ autoStartMonitor: false, tryWakeLauncher: false });
 }
 
 function bindEvents() {
