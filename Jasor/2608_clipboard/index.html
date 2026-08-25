@@ -29,9 +29,9 @@
         </div>
         <ol class="setup-steps">
           <li>安装依赖：<code>pip install Pillow</code></li>
-          <li>运行后台：<code>python clipboard_backend.py</code></li>
-          <li>（可选）唤醒器：<code>python clipboard_backend.py --launcher</code>，便于本页自动拉起后台</li>
-          <li>回到此页面，点击「连接本地后台」并勾选「自动监控」</li>
+          <li>推荐常驻唤醒器：<code>pythonw clipboard_backend.py --launcher</code>（很轻，开机可挂着）</li>
+          <li>本页连接后会自动拉起 server；关闭页面约 90 秒无请求后 server 自动退出</li>
+          <li>也可直接运行：<code>python clipboard_backend.py</code>（同样支持空闲自动退出）</li>
         </ol>
         <div class="hint-actions">
           <button id="btnCopyInstall" type="button" class="secondary small">复制安装命令</button>

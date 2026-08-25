@@ -33,6 +33,7 @@ HOST = "127.0.0.1"
 SERVER_PORT = 8765
 LAUNCHER_PORT = 8764
 POLL_INTERVAL_SEC = 0.8
+DEFAULT_IDLE_TIMEOUT_SEC = 90
 BASE_DIR = Path(__file__).resolve().parent
 CACHE_DIR = BASE_DIR / ".clipboard_cache"
 _START_SERVER_LOCK = threading.Lock()
@@ -379,23 +380,42 @@ class ServerState:
     def __init__(self) -> None:
         self.store = HistoryStore(cache_dir=CACHE_DIR)
         self.monitor = ClipboardMonitor(self.store)
+        self.last_request_at = time.time()
+        self.idle_timeout_sec = DEFAULT_IDLE_TIMEOUT_SEC
+        self.httpd: Optional[ThreadingHTTPServer] = None
 
 
 STATE = ServerState()
+
+
+def touch_request() -> None:
+    """刷新最近一次网页请求时间，用于空闲超时判断。"""
+    STATE.last_request_at = time.time()
 
 
 class ApiHandler(BaseHTTPRequestHandler):
     server_version = "ClipboardBackend/1.0"
 
     def do_OPTIONS(self) -> None:
+        touch_request()
         self.send_response(204)
         self._send_cors()
         self.end_headers()
 
     def do_GET(self) -> None:
+        touch_request()
         path = urlparse(self.path).path
         if path == "/api/health":
-            self._json({"ok": True, "monitoring": STATE.monitor.running, "historyCount": len(STATE.store.entries)})
+            idle_left = max(0, int(STATE.idle_timeout_sec - (time.time() - STATE.last_request_at)))
+            self._json(
+                {
+                    "ok": True,
+                    "monitoring": STATE.monitor.running,
+                    "historyCount": len(STATE.store.entries),
+                    "idleTimeoutSec": STATE.idle_timeout_sec,
+                    "idleLeftSec": idle_left,
+                },
+            )
             return
         if path == "/api/history":
             self._json({"entries": [entry_to_summary(e) for e in STATE.store.entries]})
@@ -427,6 +447,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         self.send_error(404)
 
     def do_POST(self) -> None:
+        touch_request()
         path = urlparse(self.path).path
         if path == "/api/monitor/start":
             STATE.monitor.start()
@@ -479,7 +500,16 @@ def start_server_process(port: int = SERVER_PORT) -> bool:
         if now - _LAST_START_ATTEMPT < 5.0:
             return is_port_open(port)
         _LAST_START_ATTEMPT = now
-        command = [sys.executable, str(Path(__file__).resolve()), "--server", "--port", str(port), "--no-banner"]
+        command = [
+            sys.executable,
+            str(Path(__file__).resolve()),
+            "--server",
+            "--port",
+            str(port),
+            "--no-banner",
+            "--idle-timeout",
+            str(DEFAULT_IDLE_TIMEOUT_SEC),
+        ]
         popen_kwargs: dict[str, Any] = {"cwd": str(BASE_DIR), "stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL}
         if sys.platform == "win32":
             popen_kwargs["creationflags"] = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW
@@ -527,12 +557,42 @@ class LauncherHandler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
 
-def run_server(port: int = SERVER_PORT, auto_monitor: bool = True, show_banner: bool = True) -> None:
+def _watch_idle_timeout(httpd: ThreadingHTTPServer, idle_timeout_sec: int, show_banner: bool) -> None:
+    """一段时间无网页请求后自动关闭 server。"""
+    while True:
+        time.sleep(2.0)
+        idle_for = time.time() - STATE.last_request_at
+        if idle_for < idle_timeout_sec:
+            continue
+        if show_banner:
+            print(f"\n已空闲 {int(idle_for)} 秒，自动退出 server")
+        STATE.monitor.stop()
+        threading.Thread(target=httpd.shutdown, daemon=True).start()
+        return
+
+
+def run_server(
+    port: int = SERVER_PORT,
+    auto_monitor: bool = True,
+    show_banner: bool = True,
+    idle_timeout_sec: int = DEFAULT_IDLE_TIMEOUT_SEC,
+) -> None:
     if auto_monitor:
         STATE.monitor.start()
+    STATE.idle_timeout_sec = idle_timeout_sec
+    STATE.last_request_at = time.time()
     httpd = ThreadingHTTPServer((HOST, port), ApiHandler)
+    STATE.httpd = httpd
+    if idle_timeout_sec > 0:
+        threading.Thread(
+            target=_watch_idle_timeout,
+            args=(httpd, idle_timeout_sec, show_banner),
+            daemon=True,
+        ).start()
     if show_banner:
         print(f"Clipboard 后台已启动: http://{HOST}:{port}")
+        if idle_timeout_sec > 0:
+            print(f"网页关闭后约 {idle_timeout_sec} 秒无请求将自动退出")
         print("按 Ctrl+C 停止")
     try:
         httpd.serve_forever()
@@ -547,7 +607,7 @@ def run_server(port: int = SERVER_PORT, auto_monitor: bool = True, show_banner: 
 def run_launcher(port: int = LAUNCHER_PORT) -> None:
     httpd = HTTPServer((HOST, port), LauncherHandler)
     print(f"Clipboard 唤醒器已启动: http://{HOST}:{port}")
-    print("网页可通过 /start 拉起后台")
+    print("网页可通过 /start 拉起后台；server 空闲后会自动退出，launcher 常驻")
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
@@ -563,11 +623,22 @@ def main() -> int:
     parser.add_argument("--port", type=int, default=SERVER_PORT, help="后台端口，默认 8765")
     parser.add_argument("--no-monitor", action="store_true", help="启动时不自动监控剪切板")
     parser.add_argument("--no-banner", action="store_true", help="不打印启动信息")
+    parser.add_argument(
+        "--idle-timeout",
+        type=int,
+        default=DEFAULT_IDLE_TIMEOUT_SEC,
+        help="无网页请求多少秒后自动退出，默认 90；0 表示永不因空闲退出",
+    )
     args = parser.parse_args()
     if args.launcher:
         run_launcher()
         return 0
-    run_server(port=args.port, auto_monitor=not args.no_monitor, show_banner=not args.no_banner)
+    run_server(
+        port=args.port,
+        auto_monitor=not args.no_monitor,
+        show_banner=not args.no_banner,
+        idle_timeout_sec=max(0, args.idle_timeout),
+    )
     return 0
 
 

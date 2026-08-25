@@ -1,8 +1,8 @@
 const SERVER_URL = "http://127.0.0.1:8765";
 const LAUNCHER_URL = "http://127.0.0.1:8764";
-const POLL_MS = 1000;
+const POLL_MS = 2000;
 const INSTALL_COMMAND = "pip install Pillow";
-const START_COMMAND = "python clipboard_backend.py";
+const START_COMMAND = "python clipboard_backend.py --launcher";
 
 let entries = [];
 let selectedId = null;
@@ -39,21 +39,57 @@ function bindEvents() {
   els.btnCopyInstall.addEventListener("click", () => copyText(INSTALL_COMMAND, "安装命令已复制"));
   els.btnCopyStart.addEventListener("click", () => copyText(START_COMMAND, "启动命令已复制"));
   els.autoWatch.addEventListener("change", () => toggleMonitor());
+  window.addEventListener("pagehide", () => stopKeepalive());
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      /* 页面隐藏后停止心跳，约 90 秒后 server 空闲退出 */
+      stopKeepalive();
+    } else if (backendConnected) {
+      startKeepalive();
+      pingHealth();
+    }
+  });
 }
 
 let pollTimer;
 
-function startPolling() {
-  stopPolling();
+function startKeepalive() {
+  stopKeepalive();
   pollTimer = window.setInterval(() => {
-    if (backendConnected && monitorEnabled) refreshHistory(false);
+    if (!backendConnected) return;
+    if (monitorEnabled) {
+      refreshHistory(false);
+    } else {
+      pingHealth();
+    }
   }, POLL_MS);
 }
 
-function stopPolling() {
+function stopKeepalive() {
   if (pollTimer !== undefined) {
     window.clearInterval(pollTimer);
     pollTimer = undefined;
+  }
+}
+
+async function pingHealth() {
+  try {
+    const response = await fetch(`${SERVER_URL}/api/health`);
+    if (!response.ok) {
+      backendConnected = false;
+      monitorEnabled = false;
+      els.autoWatch.checked = false;
+      stopKeepalive();
+      updateBackendUi();
+      setStatus("本地后台已断开（可能已空闲退出）");
+    }
+  } catch (_e) {
+    backendConnected = false;
+    monitorEnabled = false;
+    els.autoWatch.checked = false;
+    stopKeepalive();
+    updateBackendUi();
+    setStatus("本地后台已断开（可能已空闲退出）");
   }
 }
 
@@ -65,15 +101,17 @@ async function connectBackend(options = {}) {
     backendConnected = false;
     monitorEnabled = false;
     els.autoWatch.checked = false;
+    stopKeepalive();
     updateBackendUi();
     setStatus("未连接：请先下载并运行 clipboard_backend.py");
     return;
   }
   backendConnected = true;
   updateBackendUi();
+  startKeepalive();
   await refreshHistory(true);
   if (options.autoStartMonitor || els.autoWatch.checked) await startMonitor();
-  setStatus(`已连接，历史 ${entries.length} 条`);
+  setStatus(`已连接，历史 ${entries.length} 条（关页面约 90 秒后后台自动退出）`);
 }
 
 async function checkHealth() {
@@ -83,7 +121,6 @@ async function checkHealth() {
     const payload = await response.json();
     monitorEnabled = Boolean(payload.monitoring);
     els.autoWatch.checked = monitorEnabled;
-    if (monitorEnabled) startPolling();
     return Boolean(payload.ok);
   } catch (_e) {
     return false;
@@ -112,7 +149,7 @@ async function toggleMonitor() {
 async function startMonitor() {
   if (!backendConnected) {
     const ok = await checkHealth() || await wakeLauncher();
-    if (!ok) { els.autoWatch.checked = false; setStatus("请先运行 python clipboard_backend.py"); return; }
+    if (!ok) { els.autoWatch.checked = false; setStatus("请先运行 python clipboard_backend.py --launcher"); return; }
     backendConnected = true;
   }
   try {
@@ -120,7 +157,7 @@ async function startMonitor() {
     const payload = await response.json();
     monitorEnabled = Boolean(payload.monitoring);
     els.autoWatch.checked = monitorEnabled;
-    startPolling();
+    startKeepalive();
     updateBackendUi();
     setStatus("自动监控已开启");
   } catch (error) {
@@ -134,14 +171,15 @@ async function stopMonitor() {
     try { await fetch(`${SERVER_URL}/api/monitor/stop`, { method: "POST" }); } catch (_e) {}
   }
   monitorEnabled = false;
-  stopPolling();
-  setStatus("自动监控已关闭");
+  if (backendConnected) startKeepalive();
+  setStatus("自动监控已关闭（页面仍保持连接）");
 }
 
 async function refreshHistory(selectFirst) {
   if (!backendConnected) return;
   try {
     const response = await fetch(`${SERVER_URL}/api/history`);
+    if (!response.ok) throw new Error("history failed");
     const payload = await response.json();
     const next = Array.isArray(payload.entries) ? payload.entries : [];
     const changed = next.length !== entries.length || next[0]?.id !== entries[0]?.id;
