@@ -25,13 +25,14 @@
       <div id="backendHint" class="backend-hint">
         <p><strong>第一步：下载并运行本地后台</strong></p>
         <div class="download-box">
-          <a id="downloadLink" class="download-btn" href="clipboard_backend.py" download="clipboard_backend.py">下载 clipboard_backend.py</a>
+          <a id="downloadLink" class="download-btn" href="clipboard_backend.pyw" download="clipboard_backend.pyw">下载并双击运行（Windows .pyw）</a>
+          <a class="download-btn secondary-link" href="clipboard_backend.py" download="clipboard_backend.py">下载 .py（命令行）</a>
         </div>
         <ol class="setup-steps">
           <li>安装依赖：<code>pip install Pillow</code></li>
-          <li>推荐常驻唤醒器：<code>pythonw clipboard_backend.py --launcher</code>（很轻，开机可挂着）</li>
-          <li>本页连接后会自动拉起 server；关闭页面约 90 秒无请求后 server 自动退出</li>
-          <li>也可直接运行：<code>python clipboard_backend.py</code>（同样支持空闲自动退出）</li>
+          <li><strong>Windows 推荐</strong>：下载 <code>clipboard_backend.pyw</code>，双击即可启动唤醒器（无黑窗口，默认 --launcher）</li>
+          <li>打开本页 → 连接本地后台 → 勾选自动监控；关页面约 90 秒后 server 自动退出</li>
+          <li>命令行也可用：<code>python clipboard_backend.py --launcher</code> 或 <code>python clipboard_backend.py</code>（默认 server）</li>
         </ol>
         <div class="hint-actions">
           <button id="btnCopyInstall" type="button" class="secondary small">复制安装命令</button>

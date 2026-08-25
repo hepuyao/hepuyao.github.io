@@ -2,7 +2,7 @@ const SERVER_URL = "http://127.0.0.1:8765";
 const LAUNCHER_URL = "http://127.0.0.1:8764";
 const POLL_MS = 2000;
 const INSTALL_COMMAND = "pip install Pillow";
-const START_COMMAND = "python clipboard_backend.py --launcher";
+const START_COMMAND = "pythonw clipboard_backend.pyw";
 
 let entries = [];
 let selectedId = null;
