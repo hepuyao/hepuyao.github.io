@@ -13,59 +13,25 @@
       coverpage: true,
       onlyCover: true,
       loadNavbar: true,
-      //loadSidebar: true
-      //search: 'auto', //默认的搜索
-      
-      // 完整配置参数
       search: {
-      maxAge: 86400000, // 过期时间，单位毫秒，默认一天
-      paths: [], // or 'auto'
-      placeholder: '哥哥，来这里搜',
-
-      // 支持本地化
-      placeholder: {
-        '/zh-cn/': '来这里 搜搜搜',
-        '/': 'Type to search'
-      },
-
-      noData: '弟弟搜不到啊',
-
-      // 支持本地化
-      noData: {
-        '/zh-cn/': '哥哥，搜不到结果啊',
-        '/': 'No Results'
-      },
-
-      // 搜索标题的最大层级, 1 - 6
-      depth: 2,
-
-      hideOtherSidebarContent: false, // 是否隐藏其他侧边栏内容
-
-      // 避免搜索索引冲突
-      // 同一域下的多个网站之间
-      namespace: 'website-1',
-
-      // 使用不同的索引作为路径前缀（namespaces）
-      // 注意：仅适用于 paths: 'auto' 模式
-      //
-      // 初始化索引时，我们从侧边栏查找第一个路径
-      // 如果它与列表中的前缀匹配，我们将切换到相应的索引
-      pathNamespaces: ['/zh-cn', '/ru-ru', '/ru-ru/v1'],
-
-      // 您可以提供一个正则表达式来匹配前缀。在这种情况下，
-      // 匹配到的字符串将被用来识别索引
-      pathNamespaces: /^(\/(zh-cn|ru-ru))?(\/(v1|v2))?/
-    },
-      footer: {
-        copy: 'Copyright &copy; 2019 💖 </span>',
-        auth: ' <strong>飞天小牛肉</strong>',
-        pre: '<hr/>',
-        style: 'text-align: center;',
+        maxAge: 86400000,
+        paths: [],
+        placeholder: {
+          '/zh-cn/': '来这里 搜搜搜',
+          '/': 'Type to search'
+        },
+        noData: {
+          '/zh-cn/': '搜不到结果',
+          '/': 'No Results'
+        },
+        depth: 2,
+        hideOtherSidebarContent: false,
+        namespace: 'website-1',
+        pathNamespaces: /^(\/(zh-cn|ru-ru))?(\/(v1|v2))?/
       }
     }
   </script>
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
-  <script src="//polyfill.io/v3/polyfill.min.js?features=String.prototype.normalize"></script>
 </body>
 </html>
