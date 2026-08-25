@@ -3,6 +3,7 @@
 ![图片](http://hepuyao.com/Pictures/Movies/spiderman_1.jpg "蜘蛛侠-平行宇宙")
 ## Jasor
 - [Jasor](Jasor/README.md)
+- [剪切板历史查看](https://hepuyao.github.io/Jasor/2608_clipboard/)
 ## CUOS
 - [CUOS](CUOS/readme.md)
 ## 2026

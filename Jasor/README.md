@@ -1,9 +1,10 @@
 # Jasor 工具入口
 
-这里提供两个浏览器工具入口：
+这里提供浏览器工具入口：
 
 - <a href="/Jasor/2604_erp_to_plm/app.html" target="_blank" rel="noopener noreferrer">ERP → PLM 转换</a>
 - <a href="/Jasor/2604_plm_check_table/app.html" target="_blank" rel="noopener noreferrer">PLM 表检测（B/AA）</a>
+- <a href="/Jasor/2608_clipboard/" target="_blank" rel="noopener noreferrer">剪切板历史查看</a>
 
 ## 功能说明
 

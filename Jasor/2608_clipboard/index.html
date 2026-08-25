@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clipboard Viewer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="toolbar">
+      <div class="toolbar-left">
+        <h1>Clipboard Viewer</h1>
+        <span id="backendBadge" class="badge offline">本地后台：未连接</span>
+      </div>
+      <div class="toolbar-actions">
+        <button id="btnConnect" type="button">连接本地后台</button>
+        <button id="btnClear" type="button" class="danger">清空历史</button>
+        <label class="toggle">
+          <input id="autoWatch" type="checkbox">
+          <span>自动监控</span>
+        </label>
+      </div>
+      <p id="status" class="status">就绪</p>
+      <div id="backendHint" class="backend-hint">
+        <p><strong>第一步：下载并运行本地后台</strong></p>
+        <div class="download-box">
+          <a id="downloadLink" class="download-btn" href="clipboard_backend.py" download="clipboard_backend.py">下载 clipboard_backend.py</a>
+        </div>
+        <ol class="setup-steps">
+          <li>安装依赖：<code>pip install Pillow</code></li>
+          <li>运行后台：<code>python clipboard_backend.py</code></li>
+          <li>（可选）唤醒器：<code>python clipboard_backend.py --launcher</code>，便于本页自动拉起后台</li>
+          <li>回到此页面，点击「连接本地后台」并勾选「自动监控」</li>
+        </ol>
+        <div class="hint-actions">
+          <button id="btnCopyInstall" type="button" class="secondary small">复制安装命令</button>
+          <button id="btnCopyStart" type="button" class="secondary small">复制启动命令</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="history-panel">
+        <div class="panel-head">
+          <h2>历史记录</h2>
+          <span id="historyCount" class="count">0 条</span>
+        </div>
+        <ul id="historyList" class="history-list"></ul>
+      </aside>
+
+      <section class="viewer-panel">
+        <div id="textView" class="text-view hidden">
+          <pre id="textContent"></pre>
+        </div>
+        <div id="imageView" class="image-view hidden">
+          <p id="imageInfo" class="image-info"></p>
+          <div class="image-wrap">
+            <img id="imageContent" alt="剪切板截图">
+          </div>
+        </div>
+        <div id="emptyView" class="empty-view">
+          <p>开启「自动监控」后，本地后台会持续记录剪切板历史（文本 + 截图）</p>
+          <p class="hint">网页仅负责展示，读取剪切板需在本机运行 Python 后台</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
