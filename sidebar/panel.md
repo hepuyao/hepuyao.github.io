@@ -1,7 +1,0 @@
-# panel
-
-panel
-
-### panel
-
-panel

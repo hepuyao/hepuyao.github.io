@@ -2,3 +2,6 @@
     * [工具](https://hepuyao.github.io/#/Jasor/README)
     * [csdn](https://blog.csdn.net/qq_39054069?type=blog)
 * [主页](https://hepuyao.github.io/#/guide)
+* [外部链接]()
+    * [deepin王勇](https://manateelazycat.github.io/index.html)
+    * [阮一峰的网络日志](https://www.ruanyifeng.com/blog/index.html)
