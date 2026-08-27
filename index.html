@@ -125,6 +125,18 @@
       pointer-events: none;
       cursor: default;
     }
+    .giscus-wrap {
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--color-line);
+      font-family: var(--font-ui);
+    }
+    .giscus-wrap__title {
+      margin: 0 0 1.25rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--color-text);
+    }
   </style>
 </head>
 <body>
@@ -135,6 +147,18 @@
       onlyCover: true,
       loadNavbar: true,
       themeColor: '#222',
+      giscus: {
+        repo: 'hepuyao/hepuyao.github.io',
+        repoId: 'MDEwOlJlcG9zaXRvcnkxNzU5NzYwMzk=',
+        category: 'Announcements',
+        categoryId: 'DIC_kwDOCn0uZ84DESkR',
+        mapping: 'specific',
+        theme: 'noborder_light',
+        lang: 'zh-CN',
+        reactionsEnabled: true,
+        inputPosition: 'bottom',
+        excludePaths: ['/', '/guide', '/guide.md', '/_coverpage', '/_navbar', '/_sidebar']
+      },
       search: {
         maxAge: 86400000,
         paths: [],
@@ -268,6 +292,80 @@
                 }
               });
             });
+          });
+        },
+        function (hook, vm) {
+          var cfg = window.$docsify.giscus || {};
+          var excludePaths = cfg.excludePaths || [];
+
+          function shouldShowComments(path) {
+            if (!cfg.repoId || cfg.repoId === 'YOUR_REPO_ID') {
+              return false;
+            }
+            if (!path || path === '/') {
+              return false;
+            }
+            var normalized = path.replace(/^\//, '').replace(/\.md$/i, '');
+            return excludePaths.indexOf(path) === -1 &&
+              excludePaths.indexOf('/' + normalized) === -1 &&
+              excludePaths.indexOf('/' + normalized + '.md') === -1;
+          }
+
+          function removeGiscusFrame() {
+            document.querySelectorAll('iframe.giscus-frame, script[src*="giscus.app"]').forEach(function (el) {
+              el.remove();
+            });
+          }
+
+          function mountGiscus(term) {
+            var section = document.querySelector('.markdown-section');
+            if (!section) {
+              return;
+            }
+            var wrap = section.querySelector('.giscus-wrap');
+            if (!wrap) {
+              wrap = document.createElement('div');
+              wrap.className = 'giscus-wrap';
+              wrap.innerHTML = '<h3 class="giscus-wrap__title">评论</h3><div class="giscus"></div>';
+              section.appendChild(wrap);
+            }
+            var host = wrap.querySelector('.giscus');
+            if (!host) {
+              return;
+            }
+            host.innerHTML = '';
+            removeGiscusFrame();
+            var script = document.createElement('script');
+            script.src = 'https://giscus.app/client.js';
+            script.setAttribute('data-repo', cfg.repo);
+            script.setAttribute('data-repo-id', cfg.repoId);
+            script.setAttribute('data-category', cfg.category);
+            script.setAttribute('data-category-id', cfg.categoryId);
+            script.setAttribute('data-mapping', cfg.mapping || 'specific');
+            script.setAttribute('data-term', term);
+            script.setAttribute('data-strict', '0');
+            script.setAttribute('data-reactions-enabled', cfg.reactionsEnabled ? '1' : '0');
+            script.setAttribute('data-emit-metadata', '0');
+            script.setAttribute('data-input-position', cfg.inputPosition || 'bottom');
+            script.setAttribute('data-theme', cfg.theme || 'noborder_light');
+            script.setAttribute('data-lang', cfg.lang || 'zh-CN');
+            script.crossOrigin = 'anonymous';
+            script.async = true;
+            host.appendChild(script);
+          }
+
+          hook.doneEach(function () {
+            var path = (vm.route && vm.route.path) || '';
+            var wrap = document.querySelector('.giscus-wrap');
+            if (!shouldShowComments(path)) {
+              if (wrap) {
+                wrap.remove();
+              }
+              removeGiscusFrame();
+              return;
+            }
+            var term = path.replace(/^\//, '');
+            mountGiscus(term);
           });
         }
       ]
