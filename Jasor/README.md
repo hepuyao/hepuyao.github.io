@@ -5,7 +5,7 @@
 - <a href="/Jasor/2604_erp_to_plm/app.html" target="_blank" rel="noopener noreferrer">ERP → PLM 转换</a>
 - <a href="/Jasor/2604_plm_check_table/app.html" target="_blank" rel="noopener noreferrer">PLM 表检测（B/AA）</a>
 - <a href="/Jasor/2608_clipboard/" target="_blank" rel="noopener noreferrer">剪切板历史查看</a>
-- <a href="/Jasor/2608_notebook_vague/" target="_blank" rel="noopener noreferrer">notebook vague</a>
+- <a href="/Jasor/2608_notebook_vague/" target="_blank" rel="noopener noreferrer">模糊笔记</a>
 - 桌面透明窗：`2608_notebook_tran_desktop/`（本地 `python3 app.py`）
 
 ## 功能说明
