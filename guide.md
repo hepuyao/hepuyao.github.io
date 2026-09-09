@@ -1,6 +1,4 @@
 # 何朴尧的个人博客
-
-![图片](http://hepuyao.com/Pictures/Movies/spiderman_1.jpg "蜘蛛侠-平行宇宙")
 ## Jasor
 - [Jasor](Jasor/README.md)
 
