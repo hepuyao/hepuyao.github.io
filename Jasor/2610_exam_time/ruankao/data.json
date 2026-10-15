@@ -1,0 +1,32 @@
+{
+  "updatedAt": "2026-10-14T15:19:13+08:00",
+  "source": "https://bm.ruankao.org.cn/sign/welcome",
+  "batch": {
+    "id": "2607100934129194930677514",
+    "name": "2026年下半年软考"
+  },
+  "cities": {
+    "北京": {
+      "signupStart": "2026-09-11T00:00+08:00",
+      "signupEnd": "2026-09-17T23:59+08:00",
+      "estimated": false
+    },
+    "天津": {
+      "signupStart": "2026-08-27T09:00+08:00",
+      "signupEnd": "2026-09-16T17:00+08:00",
+      "estimated": false
+    }
+  },
+  "reference": {
+    "北京": {
+      "signupStart": "2026-03-27T00:00+08:00",
+      "signupEnd": "2026-04-02T23:59+08:00",
+      "batchName": "2026年上半年软考"
+    },
+    "天津": {
+      "signupStart": "2026-03-20T09:00+08:00",
+      "signupEnd": "2026-04-15T17:00+08:00",
+      "batchName": "2026年上半年软考"
+    }
+  }
+}
